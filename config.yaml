@@ -1,0 +1,34 @@
+# config.yaml — FINAL, production-safe
+
+PROJECT: "edd-trn-mdai-pr-cah"
+USE_BIGQUERY: true
+
+# Paths
+LOCAL_DATA_DIR: "/home/jupyter/data"
+OUTPUT_DIR: "./output"
+GCS_BUCKET: "gs://cah-eddie-trn-med-ai-ita-np"
+
+# Logging (REQUIRED by logger_utils)
+LOG_FILE: "log.txt"
+LOG_LEVEL: "INFO"   # <-- RESTORED (CRITICAL)
+
+# Output files
+DAT_CSV: "./output/dat.csv"
+SALES_REP_DATA_V2: "./output/sales_rep_data_v2.csv"
+SIG_NAMES_CSV: "./output/SCSE_withnames_V3.csv"
+SIG_PICKLE: "./output/lvl3tolvl5_dict_v4.pkl"
+
+# GA parameters
+POPULATION_SIZE: 200
+MAX_GENERATIONS: 200
+MUTATION_RATE: 0.02
+CROSSOVER_RATE: 0.5
+USE_DISTANCE_METRIC: true
+SEED: 42
+
+# Geo lookup 
+
+GEO_ENABLED: true
+GEO_COUNTRY: "US"
+GEO_LOOKUP_FILE: "postal_geo_lookup_us.csv"
+GEO_LOOKUP_DIR: "geo"
