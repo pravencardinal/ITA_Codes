@@ -1,0 +1,155 @@
+"""
+Airflow DAG for Intelligent Territory Alignment (ITA)
+
+Triggers Vertex AI Custom Job that runs ITA Docker image.
+Production-ready, environment-driven, no hardcoding.
+"""
+
+from airflow import DAG, models
+from airflow.operators.email_operator import EmailOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.models import Variable
+from datetime import datetime, timedelta
+from google.cloud import aiplatform
+import logging
+
+
+# ------------------------------------------------------------------
+# DEFAULT DAG ARGS
+# ------------------------------------------------------------------
+
+default_args = {
+    "owner": "medai",
+    "description": "ITA – Intelligent Territory Alignment Vertex AI Pipeline",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 1, 1),
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
+
+dag_name = "eddie_med_ai_ita"
+custom_job_name = "eddie_med_ai_ita_custom_job"
+
+
+# ------------------------------------------------------------------
+# ENVIRONMENT CONFIG
+# ------------------------------------------------------------------
+
+eddie_env = Variable.get("eddie_env")
+
+if eddie_env == "TRN":
+    schedule_interval = "0 8 * * 1"
+    project = "edd-trn-mdai-pr-cah"
+    service_account = "sa-eddie-med-ai-ita@edd-trn-mdai-pr-cah.iam.gserviceaccount.com"
+    container_uri = "gcr.io/edd-trn-cde-pr-cah/med-ai-ita:0.0.1"
+    machine_type = "n1-standard-4"
+    bucket_name = "cah-eddie-trn-med-ai-ita-np"
+    location = "us-central1"
+    email_to = "g-ds-global-usmpd-mktg-sourcing@cardinalhealth.com"
+
+elif eddie_env == "STG":
+    schedule_interval = "0 8 * * 1"
+    project = "eddie-stg-pr-cah"
+    service_account = "sa-eddie-med-ai-ita@eddie-stg-pr-cah.iam.gserviceaccount.com"
+    container_uri = "gcr.io/eddie-stg-pr-cah/med-ai-ita:stg-0.0.1"
+    machine_type = "n1-standard-4"
+    bucket_name = "cah-eddie-stg-med-ai-ita-np"
+    location = "us-central1"
+    email_to = "g-ds-global-usmpd-mktg-sourcing@cardinalhealth.com"
+
+elif eddie_env == "PRD":
+    schedule_interval = "0 8 * * 1"
+    project = "eddie-pr-cah"
+    service_account = "sa-eddie-med-ai-ita@eddie-pr-cah.iam.gserviceaccount.com"
+    container_uri = "gcr.io/eddie-pr-cah/med-ai-ita:prd-0.0.1"
+    machine_type = "n1-standard-4"
+    bucket_name = "cah-eddie-prd-med-ai-ita-np"
+    location = "us-central1"
+    email_to = "g-ds-global-usmpd-mktg-sourcing@cardinalhealth.com"
+
+else:
+    raise ValueError(f"Unsupported eddie_env: {eddie_env}")
+
+BUCKET_URI = f"gs://{bucket_name}/vertex-staging"
+
+
+# ------------------------------------------------------------------
+# VERTEX WORKER POOL
+# ------------------------------------------------------------------
+
+worker_pool_specs = [
+    {
+        "machine_spec": {
+            "machine_type": machine_type,
+        },
+        "replica_count": 1,
+        "container_spec": {
+            "image_uri": container_uri,
+            "command": ["python", "scripts/main.py"],
+        },
+    }
+]
+
+
+# ------------------------------------------------------------------
+# VERTEX JOB FUNCTION
+# ------------------------------------------------------------------
+
+def vertex_ai_custom_job():
+    aiplatform.init(
+        project=project,
+        location=location,
+        staging_bucket=BUCKET_URI
+    )
+
+    job = aiplatform.CustomJob(
+        display_name=custom_job_name,
+        worker_pool_specs=worker_pool_specs,
+        labels={
+            "ml_use_case": "ita",
+            "apmid": "31441",
+            "costcenter": "2060000932"
+        }
+    )
+
+    job.run(service_account=service_account)
+
+
+# ------------------------------------------------------------------
+# DAG DEFINITION
+# ------------------------------------------------------------------
+
+with models.DAG(
+    dag_name,
+    default_args=default_args,
+    schedule_interval=schedule_interval,
+    catchup=False,
+    max_active_runs=1,
+    dagrun_timeout=timedelta(minutes=240),
+    access_control={"medai": {"can_read", "can_edit"}},
+) as dag:
+
+    run_vertex_job = PythonOperator(
+        task_id="vertex_ai_custom_job_task",
+        python_callable=vertex_ai_custom_job,
+    )
+
+    success_email = EmailOperator(
+        task_id="success_mail",
+        to=email_to,
+        subject=f"ITA Vertex AI Pipeline Success - {eddie_env}",
+        html_content=f"<p>ITA Vertex AI job completed successfully in {eddie_env}.</p>",
+    )
+
+    error_email = EmailOperator(
+        task_id="error_mail",
+        trigger_rule="one_failed",
+        to=email_to,
+        subject=f"ITA Vertex AI Pipeline Failure - {eddie_env}",
+        html_content=f"<p>ITA Vertex AI job failed in {eddie_env}.</p>",
+    )
+
+    run_vertex_job >> success_email
+    run_vertex_job >> error_email
