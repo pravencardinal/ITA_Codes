@@ -1,0 +1,184 @@
+SOLUTION STANDARD OPERATING PROCEDURE – ITA
+-------------------------------------------
+
+------------------------------------------------------------
+
+BUSINESS UNDERSTANDING
+
+------------------------------------------------------------
+
+• Capture business requirement for territory realignment (SIG's to be included)
+• Obtain approval from business leadership (Eric Ralph)
+
+
+------------------------------------------------------------
+2. DATA ENGINEERING – FINALIZED PRODUCTION DATA SOURCES
+------------------------------------------------------------
+
+Input Data Sources (Finalized):
+
+1) Ship-To Level Sales Data  
+   Source:
+   edna-data-pr-cah.VW_MED_MSADM_CMRL_CMBN_SRC.VW_SHIPTO_LEVEL_SALES_DATA
+
+   Description:
+   Contains yearly sales revenue, customer (Ship-To) information,
+   hierarchy (LVL3, LVL4, LVL5), SIG information, and postal code
+
+2) Sales Rep (Workday) Data  
+   Source:
+   edna-data-edd-pr-cah.VW_MED_AI_ML_ITA.CORP_WRK_DAY_PUBLIC_HCM__CARDINAL_WORKDAY_DATA_CV
+
+   Description:
+   Contains LVL5 rep information and home postal code
+
+NOTE:
+Previous manual MFT process and shared folder dependency has been removed
+All data is now fetched directly from BigQuery via Python
+
+
+------------------------------------------------------------
+3. DATA TRANSFORMATION (Python-Based – Replaced Alteryx)
+------------------------------------------------------------
+
+The previous Alteryx workflows have been fully replaced with Python modules
+
+Steps performed:
+
+• Fetch Ship-To sales data from BigQuery
+• Fetch Sales Rep (Workday) data from BigQuery
+• Rename and standardize required columns
+• Aggregate yearly sales to one row per Ship-To customer
+• Remove “Open” territories
+• Generate latitude and longitude using offline postal lookup file
+  (No runtime internet dependency.)
+
+Geo Handling:
+• Postal code lookup file is stored inside the Docker image
+• No external API calls are made
+• Fully production safe
+
+Outputs generated at this stage:
+• dat (customer-level dataset for model input)
+• dat_zip (sales rep dataset with geo)
+• SIG_names (hierarchy mapping dataset)
+
+
+------------------------------------------------------------
+4. DATA PREPROCESSING & FEATURE ENGINEERING
+------------------------------------------------------------
+
+Using Python:
+
+• Clean and standardize sales and hierarchy data
+• Convert categorical IDs into integer encodings
+• Compute total revenue per LVL5 rep
+• Calculate revenue standard deviation across reps
+• Compute travel distance between:
+    - Ship-To customer
+    - Assigned Sales Rep
+• Prepare processed dictionary for Genetic Algorithm
+
+
+------------------------------------------------------------
+5. MODEL DEVELOPMENT – GENETIC ALGORITHM (GA)
+------------------------------------------------------------
+
+Algorithm Components:
+
+• Initialization – Random LVL5 allocations
+• Fitness Function:
+    - Minimize travel distance
+    - Balance revenue distribution
+    - Penalize hierarchy mismatch
+• Selection – Elite selection + probability-based selection
+• Crossover – Combine parent solutions
+• Mutation – Introduce controlled randomness
+• Iteration – Run for configured number of generations
+
+Model Output:
+• Optimized LVL5 alignment per Ship-To
+• Best fitness score
+• Checkpoint files saved during training
+
+
+------------------------------------------------------------
+6. VALIDATION & REPORTING
+------------------------------------------------------------
+
+Post-model execution:
+
+• Merge optimized results with current alignment
+• Compute:
+    - Distance comparison (Current vs Proposed)
+    - Revenue standard deviation comparison
+• Identify improvement cases
+• Generate final output tables for Tableau visualization
+• Export CSV outputs
+
+
+------------------------------------------------------------
+7. PRODUCTIONIZATION
+------------------------------------------------------------
+
+The entire pipeline is containerized using Docker
+
+Docker Image Contains:
+• All Python modules
+• Config file
+• Geo lookup file
+• Required dependencies
+• Logging framework
+
+Execution:
+• Docker image built from ITA-Main project root
+• Image pushed to Harbor
+• Pipeline triggered via container run (Kubernetes Job)
+
+Authentication:
+• BigQuery credentials injected via service account
+• No credentials hardcoded inside code
+
+Configuration:
+• All parameters controlled via config.yaml
+• No hardcoded paths
+• Environment-safe design
+
+
+------------------------------------------------------------
+8. LOGGING & MONITORING
+------------------------------------------------------------
+
+• Every major function logs:
+    - Module name
+    - Function name
+    - Execution duration
+    - Status
+    - Error (if any)
+• Log file stored as pipe-separated aligned format
+• Supports production troubleshooting
+
+
+------------------------------------------------------------
+9. KEY IMPROVEMENTS FROM PREVIOUS VERSION
+------------------------------------------------------------
+
+• Removed manual Alteryx workflows
+• Removed shared folder dependency
+• Removed runtime internet geo lookups
+• Fully automated pipeline
+• Fully containerized solution
+• Production-grade logging
+• Deterministic model execution (fixed seed)
+• Config-driven parameter control
+
+
+
+
+------------------------------------------------------------
+10. NEXT STEPS - DEPLOYMENT & APPROVAL
+------------------------------------------------------------
+
+• Docker image deployment to Harbor
+• Trigger in target environment 
+• Output validation with business stakeholders
