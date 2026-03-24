@@ -1,0 +1,42 @@
+import pandas as pd
+import os
+import re
+
+# Sample: assuming your dataframe is already loaded as df
+# df = pd.read_csv("your_input_file.csv")
+
+# Output folder
+output_folder = "category_wise_output"
+os.makedirs(output_folder, exist_ok=True)
+
+# Function to clean file names (important for Windows/Mac/Linux)
+def clean_filename(name):
+    # Remove special characters and replace spaces with underscore
+    name = re.sub(r'[\\/*?:"<>|]', "", str(name))
+    name = name.strip().replace(" ", "_")
+    return name
+
+# Get unique Main Categories
+main_categories = df["Main_Category"].dropna().unique()
+
+# Loop through each category
+for category in main_categories:
+    # Filter dataframe
+    filtered_df = df[df["Main_Category"] == category]
+    
+    # Skip if empty (safety check)
+    if filtered_df.empty:
+        continue
+    
+    # Clean category name for file
+    file_name = clean_filename(category)
+    
+    # Full path
+    file_path = os.path.join(output_folder, f"{file_name}.csv")
+    
+    # Save to CSV
+    filtered_df.to_csv(file_path, index=False)
+    
+    print(f"Saved: {file_path}")
+
+print("✅ All category files created successfully!")
