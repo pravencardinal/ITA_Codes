@@ -1,0 +1,4 @@
+distance_score = mean_distance_term
+balance_score = std_revenue_term
+
+total_error = -(distance_score * 0.7 + balance_score * 0.3 + summaf * 0.5)

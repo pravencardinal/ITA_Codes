@@ -1,0 +1,13 @@
+# Difference between predicted and actual
+diff = rounded_list_2 - rounded_list   # vector
+
+# Only take worse cases (positive differences)
+positive_diff = np.where(diff > 0, diff, 0)
+
+# Penalize proportionally (THIS IS THE FIX)
+summaf = np.sum(positive_diff)
+
+# Optional: stronger penalty for extreme distances
+extreme_penalty = np.sum(np.where(positive_diff > 200, positive_diff * 2, 0))
+
+summaf = summaf + extreme_penalty

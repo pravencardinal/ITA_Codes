@@ -1,0 +1,4 @@
+# Hard constraint (block insane assignments)
+hard_penalty = np.sum(np.where(region_dists > 1500, 5000, 0))
+
+summaf += hard_penalty
