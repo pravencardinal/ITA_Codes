@@ -1,0 +1,7 @@
+choices = data['lvl5_int'].to_numpy()
+random_assignments = np.random.choice(
+    processed["n_lvl5_unq"],
+    size=len(choices),
+    replace=True
+)
+return cls(random_assignments, processed)

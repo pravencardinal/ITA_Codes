@@ -1,0 +1,9 @@
+# Normalize terms (VERY IMPORTANT)
+distance_score = mean_distance_term / 1000
+balance_score = std_revenue_term / 100
+
+# Reduce penalty impact drastically
+penalty_score = summaf / 10000000
+
+# FINAL FITNESS (maximize)
+total_error = -(distance_score * 0.6 + balance_score * 0.3 + penalty_score * 0.1)

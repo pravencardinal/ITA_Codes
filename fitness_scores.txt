@@ -1,0 +1,6 @@
+fitness_scores = np.array([ind.fitness[3] for ind in sorted_pop])
+
+# Shift to positive
+min_fit = fitness_scores.min()
+if min_fit < 0:
+    fitness_scores = fitness_scores - min_fit + 1
