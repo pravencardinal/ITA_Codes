@@ -1,0 +1,53 @@
+# Convert to numpy
+rounded_list_2 = np.asarray(rounded_list_2)
+rounded_list = np.asarray(rounded_list)
+region_dists_arr = np.asarray(region_dists)
+
+# ---------------------------------------
+# STEP 1: Distance difference
+# ---------------------------------------
+diff = rounded_list_2 - rounded_list
+
+# ---------------------------------------
+# STEP 2: Split good vs bad
+# ---------------------------------------
+worse = np.where(diff > 0, diff, 0)
+better = np.where(diff < 0, -diff, 0)
+
+# ---------------------------------------
+# STEP 3: Penalize worse (VERY STRONG)
+# ---------------------------------------
+penalty_worse = np.sum(worse)
+
+# Extra penalty for extreme increases
+penalty_extreme = np.sum(np.where(worse > 200, worse * 3, 0))
+
+# Hard constraint (block crazy routes)
+penalty_hard = np.sum(np.where(region_dists_arr > 1500, 10000, 0))
+
+total_penalty = penalty_worse + penalty_extreme + penalty_hard
+
+# ---------------------------------------
+# STEP 4: REWARD improvements (CRITICAL)
+# ---------------------------------------
+reward_better = np.sum(better)
+
+# Boost strong improvements
+reward_bonus = np.sum(np.where(better > 100, better * 2, 0))
+
+total_reward = reward_better + reward_bonus
+
+# ---------------------------------------
+# STEP 5: Revenue balance
+# ---------------------------------------
+balance_penalty = std_revenue_term * 10
+
+# ---------------------------------------
+# STEP 6: FINAL FITNESS (POSITIVE)
+# ---------------------------------------
+fitness_value = total_reward - total_penalty - balance_penalty
+
+# Ensure positive (important for GA selection)
+fitness_value = max(1, fitness_value + 10000)
+
+total_error = fitness_value
