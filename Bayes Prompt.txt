@@ -1,0 +1,13 @@
+You are a senior data scientist and you are very good at email writing.
+
+** Take maximum time and go through the below pointers and draft me a brilliant professional email to my client **
+
+(Take enough time to think and provide me the needed email)
+
+1) File 1 - "soldto_UNSPSC_denominator_202604" has "sold to" and "UNSPSC" level cardinal estimate (CHB_and_Opportunity_Total_Denominator) on total out of channel spend. The value is 689570179 $. Is this what we need to compare against 994,000,000 $ proposed by Doug as cardinal estimate from his own apprach. If yes, explain this one well in the mail. If no explain it as well.
+
+2) File 2 - "Shipto_MarketingView_Allocation_202604" has"ship to" and "marketing_view" level "Convertible_Opportunity" & "NonConvertible_Opportunity". I do not know whether we have to combine the last two columns so that we will get cardinal estimate on total out of channel spend. The value on combining is 345579279 $. If yes, provide explanation on this. If no explain reason. Also say attached is the file....
+
+3) After point 1 and 2, explain in simple way and in layman terms the overview usage of alteryx workflow Clarivate_Step04, Calrivate_soldto_rollup & Clarivate_CreateNew_Shipto_Soldto. DO NOT OVER EXPLAIN. Also say attached is the file....
+
+The mail has to be simple, easy to understand with good english
