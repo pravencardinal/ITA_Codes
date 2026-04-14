@@ -1,0 +1,29 @@
+Clarification on Cardinal Estimate for Out-of-Channel Spend
+
+
+Hi [Client Name],
+
+I hope you are doing well.
+
+I wanted to briefly clarify the two files and how they relate to the cardinal estimate of total out-of-channel spend.
+
+1) File 1 – soldto_UNSPSC_denominator_202604
+This file provides the cardinal estimate at “sold-to” and UNSPSC (material) level for total out-of-channel spend. The total comes to $689,570,179.
+
+This is the closest representation of the overall denominator from our approach and can be compared with Doug’s $994M estimate, noting that any difference would be due to methodology or coverage assumptions.
+
+2) File 2 – Shipto_MarketingView_Allocation_202604
+This file provides Convertible and Non-Convertible Opportunity at a “ship-to” and marketing view level. Even if combined ($345,579,279), this represents a segmented/allocated view of opportunity, not the full denominator.
+
+Hence, this should not be directly compared with the $994M estimate.
+Please find the file attached for reference.
+
+Summary:
+
+$689M (File 1): Total denominator → suitable for comparison
+$345M (File 2): Partial/segmented view → not comparable
+
+Please let me know if you would like us to further align on the assumptions.
+
+Best regards,
+[Your Name]
